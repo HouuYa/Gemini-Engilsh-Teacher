@@ -4,6 +4,9 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import type { LiveServerMessage } from '@google/genai';
 import { fetchBriefing, getFeedback, getShadowingSentences, checkApiStatus } from './services/geminiService';
 import { encode, decode, decodeAudioData, createBlob } from './utils/audio';
+import { getUserFriendlyErrorMessage } from './utils/apiHelpers';
+import { requestWakeLock, releaseWakeLock, isWakeLockSupported } from './utils/wakeLock';
+import { generateTTSAudio, preloadTTSAudios, ttsCache } from './services/ttsCache';
 import type { Step, BriefingData, FeedbackData, TranscriptItem, LiveStatus } from './types';
 import { Loader } from './components/Loader';
 import { MicrophoneIcon, StopIcon, PlayIcon, CheckIcon, SpeakerIcon, StopCircleIcon, KeyIcon } from './components/Icons';
@@ -11,22 +14,46 @@ import { MicrophoneIcon, StopIcon, PlayIcon, CheckIcon, SpeakerIcon, StopCircleI
 type AppStage = 'apiKey' | 'checking' | 'ready' | 'running' | 'error';
 
 const ModelSelector: React.FC<{ selectedModel: string; onModelChange: (model: string) => void; onChangeKey: () => void; }> = ({ selectedModel, onModelChange, onChangeKey }) => {
-    const models = ['gemini-2.5-pro', 'gemini-2.5-flash'];
+    const [showTooltip, setShowTooltip] = useState(false);
+    const models = [
+        { value: 'gemini-2.5-flash', label: 'Flash (추천)', description: '빠르고 경제적인 모델' },
+        { value: 'gemini-2.5-pro', label: 'Pro', description: '더 높은 품질의 분석과 피드백' }
+    ];
+
     return (
         <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
             <button onClick={onChangeKey} className="p-2 bg-dark-surface border border-gray-600 rounded-md text-sm text-dark-text-secondary hover:bg-gray-700 transition-colors" title="Change API Key">
                 <KeyIcon />
             </button>
-            <select
-                id="model-select"
-                value={selectedModel}
-                onChange={(e) => onModelChange(e.target.value)}
-                className="bg-dark-surface border border-gray-600 rounded-md px-2 py-1 text-sm text-dark-text-primary focus:outline-none focus:ring-2 focus:ring-brand-blue"
-            >
-                {models.map(model => (
-                    <option key={model} value={model}>{model}</option>
-                ))}
-            </select>
+            <div className="relative">
+                <select
+                    id="model-select"
+                    value={selectedModel}
+                    onChange={(e) => onModelChange(e.target.value)}
+                    className="bg-dark-surface border border-gray-600 rounded-md px-2 py-1 text-sm text-dark-text-primary focus:outline-none focus:ring-2 focus:ring-brand-blue"
+                >
+                    {models.map(model => (
+                        <option key={model.value} value={model.value}>{model.label}</option>
+                    ))}
+                </select>
+                <button
+                    onMouseEnter={() => setShowTooltip(true)}
+                    onMouseLeave={() => setShowTooltip(false)}
+                    onClick={() => setShowTooltip(!showTooltip)}
+                    className="ml-1 text-dark-text-secondary hover:text-brand-blue"
+                    aria-label="Model information"
+                >
+                    ⓘ
+                </button>
+                {showTooltip && (
+                    <div className="absolute right-0 top-full mt-2 w-64 p-3 bg-gray-800 border border-gray-600 rounded-md shadow-lg text-xs z-20">
+                        <p className="font-semibold text-brand-blue mb-1">Flash (추천)</p>
+                        <p className="text-dark-text-secondary mb-2">빠르고 경제적인 모델. 일상적인 대화에 충분한 품질 제공</p>
+                        <p className="font-semibold text-brand-blue mb-1">Pro</p>
+                        <p className="text-dark-text-secondary">더 높은 품질의 분석과 피드백. 비용이 더 높음</p>
+                    </div>
+                )}
+            </div>
         </div>
     );
 };
@@ -48,8 +75,13 @@ export default function App() {
   const [currentShadowingIndex, setCurrentShadowingIndex] = useState<number>(0);
   const [isAlexSpeaking, setIsAlexSpeaking] = useState<boolean>(false);
   const [liveStatus, setLiveStatus] = useState<LiveStatus>('idle');
-  const [model, setModel] = useState('gemini-2.5-pro');
+  const [model, setModel] = useState('gemini-2.5-flash'); // 기본 모델을 Flash로 변경
   const [ttsState, setTtsState] = useState<{ playing: boolean; sectionId: string | null }>({ playing: false, sectionId: null });
+  const [audioContextUnlocked, setAudioContextUnlocked] = useState(false);
+  const [ttsPreloadProgress, setTtsPreloadProgress] = useState<{ current: number; total: number } | null>(null);
+  const [lastUserActivityTime, setLastUserActivityTime] = useState<number>(Date.now());
+  const [showInactivityWarning, setShowInactivityWarning] = useState(false);
+  const [wakeLockActive, setWakeLockActive] = useState(false);
 
   // FIX: Replaced 'LiveSession' with 'any' to resolve the type error.
   const sessionPromiseRef = useRef<Promise<any> | null>(null);
@@ -65,7 +97,30 @@ export default function App() {
   const currentOutputTranscriptionRef = useRef('');
   const nextAudioStartTimeRef = useRef(0);
   const audioSourcesRef = useRef(new Set<AudioBufferSourceNode>());
-  
+  const inactivityTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const ttsPreloadAudioContextRef = useRef<AudioContext | null>(null);
+
+  // AudioContext unlock 기능 (iOS 대응)
+  const unlockAudioContext = useCallback(async () => {
+    if (audioContextUnlocked) return;
+
+    try {
+      // 무음 오디오를 재생하여 AudioContext를 활성화
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const buffer = ctx.createBuffer(1, 1, 22050);
+      const source = ctx.createBufferSource();
+      source.buffer = buffer;
+      source.connect(ctx.destination);
+      source.start(0);
+      await ctx.close();
+
+      setAudioContextUnlocked(true);
+      console.log('AudioContext unlocked successfully');
+    } catch (error) {
+      console.error('Failed to unlock AudioContext:', error);
+    }
+  }, [audioContextUnlocked]);
+
   useEffect(() => {
     const savedKey = localStorage.getItem('gemini-api-key');
     if (savedKey) {
@@ -190,8 +245,30 @@ export default function App() {
         try {
           const briefingData = await fetchBriefing(model, apiKey);
           setBriefing(briefingData);
+
+          // TTS 오디오 사전 로딩
+          setLoadingMessage('Preparing audio playback...');
+          ttsPreloadAudioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
+
+          const textsToPreload = [
+            briefingData.summary.en,
+            briefingData.key_insights.map(i => i.en).join('. '),
+            briefingData.implications.en
+          ];
+
+          await preloadTTSAudios(
+            textsToPreload,
+            apiKey,
+            ttsPreloadAudioContextRef.current,
+            (current, total) => {
+              setTtsPreloadProgress({ current, total });
+            }
+          );
+
+          setTtsPreloadProgress(null);
         } catch (e) {
-          setError('Failed to fetch a new topic. Please try again.');
+          const friendlyMessage = getUserFriendlyErrorMessage(e);
+          setError(friendlyMessage);
           console.error(e);
         } finally {
           setIsLoading(false);
@@ -212,52 +289,92 @@ export default function App() {
 
     setTtsState({ playing: true, sectionId });
     try {
-      const { GoogleGenAI, Modality } = await import('@google/genai');
-      const ai = new GoogleGenAI({ apiKey });
-      const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash-preview-tts",
-        contents: [{ parts: [{ text }] }],
-        config: {
-          responseModalities: [Modality.AUDIO],
-          speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Zephyr' } } },
-        },
-      });
-
-      const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-      if (base64Audio) {
+      // TTS 캐싱 시스템 사용
+      if (!ttsAudioContextRef.current || ttsAudioContextRef.current.state === 'closed') {
         ttsAudioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
-        const ctx = ttsAudioContextRef.current;
-        const audioBuffer = await decodeAudioData(decode(base64Audio), ctx, 24000, 1);
-        const source = ctx.createBufferSource();
-        ttsSourceRef.current = source;
-        source.buffer = audioBuffer;
-        source.connect(ctx.destination);
-        source.addEventListener('ended', () => {
-            if (ttsSourceRef.current === source) {
-                stopTtsPlayback();
-            }
-        });
-        source.start();
-      } else {
-        throw new Error("No audio data received from API.");
       }
+
+      const ctx = ttsAudioContextRef.current;
+      const audioBuffer = await generateTTSAudio(text, apiKey, ctx);
+
+      const source = ctx.createBufferSource();
+      ttsSourceRef.current = source;
+      source.buffer = audioBuffer;
+      source.connect(ctx.destination);
+      source.addEventListener('ended', () => {
+        if (ttsSourceRef.current === source) {
+          stopTtsPlayback();
+        }
+      });
+      source.start();
     } catch (e) {
       console.error("TTS failed:", e);
-      setError("Failed to play audio. Please try again.");
+      const friendlyMessage = getUserFriendlyErrorMessage(e);
+      setError(friendlyMessage);
       stopTtsPlayback();
     }
   }, [apiKey, ttsState.playing, ttsState.sectionId, stopTtsPlayback]);
+
+  // 비활성 타임아웃 관리
+  const resetInactivityTimer = useCallback(() => {
+    setLastUserActivityTime(Date.now());
+    setShowInactivityWarning(false);
+
+    if (inactivityTimerRef.current) {
+      clearTimeout(inactivityTimerRef.current);
+    }
+
+    // 2분 비활성 시 경고, 3분 비활성 시 자동 종료
+    inactivityTimerRef.current = setTimeout(() => {
+      setShowInactivityWarning(true);
+
+      // 추가 1분 대기 후 자동 종료
+      inactivityTimerRef.current = setTimeout(() => {
+        if (liveStatus === 'listening') {
+          console.log('Auto-closing session due to inactivity');
+          cleanupLiveSession();
+          setError('세션이 비활성으로 인해 자동 종료되었습니다.');
+        }
+      }, 60000); // 1분 후
+    }, 120000); // 2분 후
+  }, [liveStatus, cleanupLiveSession]);
+
+  // Live Session 중 사용자 활동 감지
+  useEffect(() => {
+    if (liveStatus === 'listening') {
+      resetInactivityTimer();
+    } else {
+      if (inactivityTimerRef.current) {
+        clearTimeout(inactivityTimerRef.current);
+        inactivityTimerRef.current = null;
+      }
+      setShowInactivityWarning(false);
+    }
+  }, [liveStatus, resetInactivityTimer]);
 
   useEffect(() => {
     return () => {
         cleanupLiveSession();
         stopTtsPlayback();
+        if (inactivityTimerRef.current) {
+          clearTimeout(inactivityTimerRef.current);
+        }
+        releaseWakeLock();
     };
   }, [cleanupLiveSession, stopTtsPlayback]);
   
   const startLiveSession = useCallback(async (systemInstruction: string) => {
     if (liveStatus !== 'idle' || !apiKey) return;
-    
+
+    // AudioContext unlock (첫 사용자 인터랙션)
+    await unlockAudioContext();
+
+    // Wake Lock 요청
+    if (isWakeLockSupported()) {
+      const wakeLockGranted = await requestWakeLock();
+      setWakeLockActive(wakeLockGranted);
+    }
+
     setLiveStatus('connecting');
     setError(null);
 
@@ -305,6 +422,8 @@ export default function App() {
                         const text = message.serverContent.inputTranscription.text;
                         currentInputTranscriptionRef.current += text;
                         setLiveUserTranscript(currentInputTranscriptionRef.current);
+                        // 사용자 음성 감지 시 비활성 타이머 리셋
+                        resetInactivityTimer();
                     }
                     if (message.serverContent?.outputTranscription) {
                         const text = message.serverContent.outputTranscription.text;
@@ -351,21 +470,31 @@ export default function App() {
                 },
                 onerror: (e) => {
                     console.error('Live session error:', e);
-                    setError('A connection error occurred. Please try starting a new topic.');
+                    const friendlyMessage = getUserFriendlyErrorMessage(e);
+                    setError(friendlyMessage);
                     cleanupLiveSession();
+                    releaseWakeLock();
+                    setWakeLockActive(false);
                 },
                 onclose: () => {
                     setLiveStatus('idle');
+                    releaseWakeLock();
+                    setWakeLockActive(false);
                 }
             }
         });
     } catch (err) {
         console.error('Failed to start live session:', err);
-        setError('Could not access microphone. Please check permissions and try again.');
+        const friendlyMessage = err instanceof Error && err.message.includes('Permission')
+          ? '마이크 접근 권한이 필요합니다. 브라우저 설정에서 권한을 허용해주세요.'
+          : getUserFriendlyErrorMessage(err);
+        setError(friendlyMessage);
         setLiveStatus('idle');
         cleanupLiveSession();
+        releaseWakeLock();
+        setWakeLockActive(false);
     }
-  }, [liveStatus, cleanupLiveSession, apiKey]);
+  }, [liveStatus, cleanupLiveSession, apiKey, unlockAudioContext, resetInactivityTimer]);
 
   const handleStep2Complete = useCallback(async () => {
     if (!apiKey) return;
@@ -378,7 +507,8 @@ export default function App() {
         setStep(3);
     } catch(e) {
         console.error(e);
-        setError('Failed to generate feedback.');
+        const friendlyMessage = getUserFriendlyErrorMessage(e);
+        setError(friendlyMessage);
     } finally {
         setIsLoading(false);
     }
@@ -396,7 +526,8 @@ export default function App() {
         }
     } catch(e) {
         console.error(e);
-        setError('Failed to prepare shadowing session.');
+        const friendlyMessage = getUserFriendlyErrorMessage(e);
+        setError(friendlyMessage);
     } finally {
         setIsLoading(false);
     }
@@ -458,8 +589,8 @@ export default function App() {
           case 1:
             return briefing && <Step1Briefing data={briefing} onStart={() => setStep(2)} onPlayTTS={handlePlayTTS} ttsState={ttsState} />;
           case 2:
-            return briefing && <Step2Discussion 
-                questions={briefing.discussion_questions} 
+            return briefing && <Step2Discussion
+                questions={briefing.discussion_questions}
                 onComplete={handleStep2Complete}
                 startLiveSession={startLiveSession}
                 cleanupLiveSession={cleanupLiveSession}
@@ -467,6 +598,12 @@ export default function App() {
                 transcript={transcript}
                 liveUserTranscript={liveUserTranscript}
                 liveAlexTranscript={liveAlexTranscript}
+                showInactivityWarning={showInactivityWarning}
+                onDismissInactivityWarning={() => {
+                  setShowInactivityWarning(false);
+                  resetInactivityTimer();
+                }}
+                wakeLockActive={wakeLockActive}
             />;
           case 3:
             return feedback && <Step3Feedback data={feedback} onStartShadowing={handleStep3Complete} onSkip={() => setStep(5)}/>;
@@ -562,6 +699,15 @@ const StartScreen: React.FC<{ onStart: () => void; }> = ({ onStart }) => (
         <p className="text-lg text-dark-text-secondary mt-4 max-w-xl">
           Welcome to Gemini Learn. Alex, your AI partner, is ready to discuss a new topic with you, provide detailed feedback, and help you improve.
         </p>
+
+        {/* 모바일 사용 안내 */}
+        <div className="mt-6 p-4 bg-blue-900/30 border border-blue-700 rounded-lg max-w-xl text-sm">
+          <p className="text-dark-text-secondary">
+            <strong className="text-brand-blue">📱 모바일 사용 안내:</strong><br />
+            토론 중에는 화면을 켠 상태로 유지해주세요. 안정적인 Wi-Fi 환경을 권장합니다.
+          </p>
+        </div>
+
         <div className="mt-8">
             <button onClick={onStart} className="px-8 py-4 bg-brand-blue text-white font-bold rounded-lg hover:bg-blue-600 transition-colors text-lg">
                 Start Today's Session
@@ -660,7 +806,10 @@ const Step2Discussion: React.FC<{
     transcript: TranscriptItem[];
     liveUserTranscript: string;
     liveAlexTranscript: string;
-}> = ({ questions, onComplete, startLiveSession, cleanupLiveSession, liveStatus, transcript, liveUserTranscript, liveAlexTranscript }) => {
+    showInactivityWarning: boolean;
+    onDismissInactivityWarning: () => void;
+    wakeLockActive: boolean;
+}> = ({ questions, onComplete, startLiveSession, cleanupLiveSession, liveStatus, transcript, liveUserTranscript, liveAlexTranscript, showInactivityWarning, onDismissInactivityWarning, wakeLockActive }) => {
     const chatEndRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -683,6 +832,29 @@ const Step2Discussion: React.FC<{
     return (
         <div className="flex flex-col h-full animate-fade-in" style={{maxHeight: '70vh'}}>
             <h2 className="text-2xl font-bold text-brand-blue mb-4">STEP 2: In-depth Discussion</h2>
+
+            {/* 비활성 경고 메시지 */}
+            {showInactivityWarning && (
+                <div className="mb-4 p-3 bg-yellow-900/50 border border-yellow-700 rounded-lg">
+                    <p className="text-yellow-300 text-sm">
+                        ⚠️ 2분간 음성이 감지되지 않았습니다. 계속 진행하시겠어요?
+                    </p>
+                    <button
+                        onClick={onDismissInactivityWarning}
+                        className="mt-2 px-3 py-1 bg-brand-blue text-white text-sm rounded-md hover:bg-blue-600"
+                    >
+                        네, 계속할게요
+                    </button>
+                </div>
+            )}
+
+            {/* Wake Lock 상태 표시 */}
+            {wakeLockActive && liveStatus === 'listening' && (
+                <div className="mb-2 text-xs text-green-400">
+                    🔒 화면 꺼짐 방지 활성화됨
+                </div>
+            )}
+
             <div className="flex flex-col md:flex-row flex-grow gap-4 overflow-hidden">
                 {/* Questions Panel */}
                 <div className="w-full md:w-1/3 bg-gray-800/50 rounded-lg p-4 overflow-y-auto">
