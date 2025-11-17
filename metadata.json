@@ -1,0 +1,7 @@
+{
+  "name": "매일 영어 토론 선생님(중급자)-배포중",
+  "description": "An expert English learning app powered by the Google Gemini API. It provides comprehensive feedback on grammar, vocabulary, and fluency through structured discussions on various topics.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
