@@ -83,6 +83,7 @@ export default function App() {
   const [showInactivityWarning, setShowInactivityWarning] = useState(false);
   const [wakeLockActive, setWakeLockActive] = useState(false);
   const [showRestartConfirmModal, setShowRestartConfirmModal] = useState(false);
+  const [userSpeaking, setUserSpeaking] = useState(false); // VAD 상태 표시
 
   // FIX: Replaced 'LiveSession' with 'any' to resolve the type error.
   const sessionPromiseRef = useRef<Promise<any> | null>(null);
@@ -91,6 +92,7 @@ export default function App() {
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const scriptProcessorRef = useRef<ScriptProcessorNode | null>(null);
   const mediaStreamSourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null); // VAD용 Analyser
   const ttsAudioContextRef = useRef<AudioContext | null>(null);
   const ttsSourceRef = useRef<AudioBufferSourceNode | null>(null);
 
@@ -187,10 +189,15 @@ export default function App() {
 
   const cleanupLiveSession = useCallback(() => {
       stopAudioPlayback();
-      
+
       if (mediaStreamSourceRef.current && scriptProcessorRef.current) {
         mediaStreamSourceRef.current.disconnect();
         scriptProcessorRef.current.disconnect();
+      }
+
+      if (analyserRef.current) {
+        analyserRef.current.disconnect();
+        analyserRef.current = null;
       }
 
       if (mediaStreamRef.current) {
@@ -208,12 +215,13 @@ export default function App() {
       outputAudioContextRef.current = null;
       scriptProcessorRef.current = null;
       mediaStreamSourceRef.current = null;
-  
+
       if (sessionPromiseRef.current) {
         sessionPromiseRef.current.then(session => session.close());
         sessionPromiseRef.current = null;
       }
       setLiveStatus('idle');
+      setUserSpeaking(false);
   }, [stopAudioPlayback]);
   
   const handleStartNewTopic = useCallback(() => {
@@ -416,7 +424,7 @@ export default function App() {
 
         const { GoogleGenAI, Modality } = await import('@google/genai');
         const ai = new GoogleGenAI({ apiKey });
-        
+
         sessionPromiseRef.current = ai.live.connect({
             model: 'gemini-2.5-flash-native-audio-preview-09-2025',
             config: {
@@ -425,24 +433,63 @@ export default function App() {
                 speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Zephyr' } } },
                 inputAudioTranscription: {},
                 outputAudioTranscription: {},
+                // 🚀 개선 #2 & #3: VAD 최적화 - 더 빠른 턴 전환과 자연스러운 대화
+                realtimeInputConfig: {
+                    automaticActivityDetection: {
+                        disabled: false, // 자동 VAD 활성화
+                        silenceDurationMs: 800, // 침묵 감지 시간 (기본값 1500ms → 800ms로 단축)
+                        prefixPaddingMs: 100, // 음성 시작 전 패딩 (자연스러운 시작)
+                    }
+                },
             },
             callbacks: {
                 onopen: () => {
                     const source = inputAudioContextRef.current!.createMediaStreamSource(stream);
                     mediaStreamSourceRef.current = source;
-                    const scriptProcessor = inputAudioContextRef.current!.createScriptProcessor(4096, 1, 1);
+
+                    // 🚀 개선 #3: VAD 개선 - AnalyserNode로 실시간 음성 레벨 감지
+                    const analyser = inputAudioContextRef.current!.createAnalyser();
+                    analyser.fftSize = 512;
+                    analyser.smoothingTimeConstant = 0.8;
+                    analyserRef.current = analyser;
+
+                    // 🚀 개선 #2: 응답 지연 최적화 - 버퍼 크기 감소 (4096 → 2048)
+                    const scriptProcessor = inputAudioContextRef.current!.createScriptProcessor(2048, 1, 1);
                     scriptProcessorRef.current = scriptProcessor;
+
+                    // VAD 임계값 설정
+                    const VOICE_THRESHOLD = -45; // dB 단위 (조정 가능)
+                    const dataArray = new Uint8Array(analyser.frequencyBinCount);
+                    let wasSpeaking = false;
 
                     scriptProcessor.onaudioprocess = (audioProcessingEvent) => {
                         const inputData = audioProcessingEvent.inputBuffer.getChannelData(0);
                         const pcmBlob = createBlob(inputData);
+
+                        // 🚀 개선 #3: VAD - 실시간 음성 레벨 계산
+                        analyser.getByteFrequencyData(dataArray);
+                        const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
+                        const volumeDb = 20 * Math.log10(average / 255);
+                        const isSpeaking = volumeDb > VOICE_THRESHOLD;
+
+                        // 🚀 개선 #1: Interrupt - 사용자 말하기 시작하면 AI 오디오 중단
+                        if (isSpeaking && !wasSpeaking && isAlexSpeaking) {
+                            console.log('User interrupt detected - stopping AI audio');
+                            stopAudioPlayback();
+                        }
+
+                        wasSpeaking = isSpeaking;
+                        setUserSpeaking(isSpeaking);
+
                         if(sessionPromiseRef.current) {
                           sessionPromiseRef.current.then((session) => {
                               session.sendRealtimeInput({ media: pcmBlob });
                           });
                         }
                     };
-                    source.connect(scriptProcessor);
+
+                    source.connect(analyser);
+                    analyser.connect(scriptProcessor);
                     scriptProcessor.connect(inputAudioContextRef.current!.destination);
                     setLiveStatus('listening');
                 },
@@ -633,6 +680,7 @@ export default function App() {
                   resetInactivityTimer();
                 }}
                 wakeLockActive={wakeLockActive}
+                userSpeaking={userSpeaking}
             />;
           case 3:
             return feedback && <Step3Feedback data={feedback} onStartShadowing={handleStep3Complete} onSkip={() => setStep(5)}/>;
@@ -845,7 +893,8 @@ const Step2Discussion: React.FC<{
     showInactivityWarning: boolean;
     onDismissInactivityWarning: () => void;
     wakeLockActive: boolean;
-}> = ({ questions, onComplete, startLiveSession, cleanupLiveSession, liveStatus, transcript, liveUserTranscript, liveAlexTranscript, showInactivityWarning, onDismissInactivityWarning, wakeLockActive }) => {
+    userSpeaking: boolean;
+}> = ({ questions, onComplete, startLiveSession, cleanupLiveSession, liveStatus, transcript, liveUserTranscript, liveAlexTranscript, showInactivityWarning, onDismissInactivityWarning, wakeLockActive, userSpeaking }) => {
     const chatEndRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -884,10 +933,19 @@ const Step2Discussion: React.FC<{
                 </div>
             )}
 
-            {/* Wake Lock 상태 표시 */}
-            {wakeLockActive && liveStatus === 'listening' && (
-                <div className="mb-2 text-xs text-green-400">
-                    🔒 화면 꺼짐 방지 활성화됨
+            {/* Wake Lock & VAD 상태 표시 */}
+            {liveStatus === 'listening' && (
+                <div className="mb-2 flex items-center gap-3 text-xs">
+                    {wakeLockActive && (
+                        <span className="text-green-400">
+                            🔒 화면 꺼짐 방지 활성화됨
+                        </span>
+                    )}
+                    {userSpeaking && (
+                        <span className="text-brand-blue flex items-center gap-1 animate-pulse">
+                            🎤 <span>음성 감지 중...</span>
+                        </span>
+                    )}
                 </div>
             )}
 
