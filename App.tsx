@@ -82,6 +82,7 @@ export default function App() {
   const [lastUserActivityTime, setLastUserActivityTime] = useState<number>(Date.now());
   const [showInactivityWarning, setShowInactivityWarning] = useState(false);
   const [wakeLockActive, setWakeLockActive] = useState(false);
+  const [showRestartConfirmModal, setShowRestartConfirmModal] = useState(false);
 
   // FIX: Replaced 'LiveSession' with 'any' to resolve the type error.
   const sessionPromiseRef = useRef<Promise<any> | null>(null);
@@ -216,6 +217,17 @@ export default function App() {
   }, [stopAudioPlayback]);
   
   const handleStartNewTopic = useCallback(() => {
+    // 학습 진행 중일 때는 확인 모달 표시
+    if (step >= 2 && step <= 4) {
+      setShowRestartConfirmModal(true);
+      return;
+    }
+
+    // 확인 후 실행되는 실제 초기화 로직
+    executeRestart();
+  }, [step]);
+
+  const executeRestart = useCallback(() => {
     cleanupLiveSession();
     stopTtsPlayback();
     setStep(0);
@@ -229,6 +241,7 @@ export default function App() {
     setFeedback(null);
     setShadowingSentences([]);
     setCurrentShadowingIndex(0);
+    setShowRestartConfirmModal(false);
   }, [cleanupLiveSession, stopTtsPlayback]);
 
   useEffect(() => {
@@ -351,6 +364,22 @@ export default function App() {
       setShowInactivityWarning(false);
     }
   }, [liveStatus, resetInactivityTimer]);
+
+  // 페이지 이탈 경고 (beforeunload)
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      // step 2(Discussion), 3(Feedback), 4(Shadowing) 진행 중일 때만 경고
+      if (appStage === 'running' && (step === 2 || step === 3 || step === 4)) {
+        e.preventDefault();
+        // Chrome requires returnValue to be set
+        e.returnValue = '토론이 진행 중입니다. 정말 페이지를 나가시겠습니까? 진행 상황이 저장되지 않습니다.';
+        return e.returnValue;
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [appStage, step]);
 
   useEffect(() => {
     return () => {
@@ -638,8 +667,8 @@ export default function App() {
         <>
             <ModelSelector selectedModel={model} onModelChange={setModel} onChangeKey={handleChangeApiKey} />
              {appStage === 'running' && (
-                <button 
-                    onClick={handleStartNewTopic} 
+                <button
+                    onClick={handleStartNewTopic}
                     className="absolute top-4 left-4 z-10 px-3 py-1 bg-brand-red text-white text-sm rounded-md hover:bg-red-600 transition-colors"
                     aria-label="Stop and Restart Session"
                 >
@@ -657,6 +686,13 @@ export default function App() {
       <main className="w-full max-w-4xl bg-dark-surface rounded-xl shadow-lg p-4 sm:p-8 flex-grow">
         {renderContent()}
       </main>
+
+      {/* 재시작 확인 모달 */}
+      <RestartConfirmModal
+        isOpen={showRestartConfirmModal}
+        onConfirm={executeRestart}
+        onCancel={() => setShowRestartConfirmModal(false)}
+      />
     </div>
   );
 }
@@ -971,3 +1007,41 @@ const Step5Completion: React.FC<{ onRestart: () => void; }> = ({ onRestart }) =>
         </div>
     </div>
 );
+
+const RestartConfirmModal: React.FC<{
+    isOpen: boolean;
+    onConfirm: () => void;
+    onCancel: () => void;
+}> = ({ isOpen, onConfirm, onCancel }) => {
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+            <div className="bg-dark-surface border border-gray-600 rounded-xl p-6 max-w-md w-full shadow-2xl animate-fade-in">
+                <h3 className="text-2xl font-bold text-brand-yellow mb-4 flex items-center">
+                    <span className="mr-2">⚠️</span> 세션 중단 확인
+                </h3>
+                <p className="text-dark-text-primary mb-2">
+                    현재 진행 중인 세션을 중단하고 처음으로 돌아가시겠습니까?
+                </p>
+                <p className="text-brand-red font-semibold mb-6">
+                    진행 상황은 저장되지 않습니다.
+                </p>
+                <div className="flex gap-3">
+                    <button
+                        onClick={onConfirm}
+                        className="flex-1 py-3 bg-brand-red text-white font-bold rounded-lg hover:bg-red-600 transition-colors"
+                    >
+                        네, 중단할게요
+                    </button>
+                    <button
+                        onClick={onCancel}
+                        className="flex-1 py-3 bg-gray-600 text-white font-bold rounded-lg hover:bg-gray-700 transition-colors"
+                    >
+                        아니요, 계속할게요
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
