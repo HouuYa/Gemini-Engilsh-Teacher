@@ -335,7 +335,8 @@ npm run preview      # 빌드 미리보기
 
 ## 📄 라이선스
 
-이 프로젝트는 Google AI Studio 앱에서 생성되었습니다.
+이 프로젝트는 최초 Google AI Studio 앱에서 생성되었습니다.
+그리고 claude code를 통해 업데이트 되었습니다.
 
 ---
 
