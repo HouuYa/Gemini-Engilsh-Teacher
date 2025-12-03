@@ -33,6 +33,8 @@
 | 🗣️ **쉐도잉 연습** | 교정된 문장으로 발음 및 내재화 연습 |
 | 🔊 **TTS 지원** | 브리핑 내용을 음성으로 들을 수 있는 기능 |
 | 🌙 **다크 모드** | 눈의 피로를 줄이는 세련된 다크 테마 |
+| 🛡️ **세션 보호** | 페이지 이탈 시 경고 및 데이터 유실 방지 |
+| ⚠️ **재시작 확인** | 중요한 액션 전 확인 모달로 실수 방지 |
 
 ### 🎯 학습 플로우 (5단계)
 
@@ -110,6 +112,7 @@ npm run preview
 - 🎙️ 마이크 버튼을 눌러 대화 시작
 - 💬 Alex의 질문에 영어로 답변
 - 📝 실시간 전사로 대화 내용 확인
+- ⚠️ **중요**: 토론 중 페이지를 나가려 하면 경고가 표시됩니다
 
 ### 5. 피드백 받기
 - ✅ 잘한 표현 확인
@@ -120,6 +123,12 @@ npm run preview
 - 🔊 교정된 문장 듣기
 - 🗣️ 따라 말하기
 - ✓ 다음 문장으로 진행
+
+### 💡 유용한 팁
+- **"Stop & Restart"** 버튼: 세션 중단 전 확인 모달이 표시됩니다
+- **모바일 사용**: 토론 중 화면이 자동으로 켜진 상태로 유지됩니다 (Wake Lock)
+- **비활성 감지**: 2분간 음성이 감지되지 않으면 경고가 표시됩니다
+- **모델 선택**: 우측 상단에서 Flash(빠름) 또는 Pro(고품질) 선택 가능
 
 ---
 
@@ -156,16 +165,22 @@ Gemini-Engilsh-Teacher/
 ├── tsconfig.json          # TypeScript 설정
 ├── package.json           # 의존성
 ├── .env.local             # 환경 변수 (API 키)
+├── README.md              # 프로젝트 설명
+├── CLAUDE.md              # 개발자 가이드
+├── TODO.md                # 작업 목록 및 향후 계획
 │
 ├── components/
 │   ├── Icons.tsx          # SVG 아이콘
 │   └── Loader.tsx         # 로딩 컴포넌트
 │
 ├── services/
-│   └── geminiService.ts   # Gemini API 서비스
+│   ├── geminiService.ts   # Gemini API 서비스
+│   └── ttsCache.ts        # TTS 캐싱 시스템
 │
 └── utils/
-    └── audio.ts           # 오디오 유틸리티
+    ├── audio.ts           # 오디오 유틸리티
+    ├── apiHelpers.ts      # API 헬퍼 함수
+    └── wakeLock.ts        # 화면 꺼짐 방지
 ```
 
 ---
@@ -231,11 +246,58 @@ npm run preview      # 빌드 미리보기
 
 ---
 
+## 🆕 최근 업데이트 (2025-12-03)
+
+### ✅ 완료된 기능
+- **페이지 이탈 경고**: 학습 진행 중 페이지를 나가려 할 때 경고 표시
+- **재시작 확인 모달**: "Stop & Restart" 버튼 클릭 시 확인 모달
+- **TODO.md 추가**: 프로젝트 작업 목록 및 향후 계획 문서화
+- **Wake Lock API**: 모바일에서 화면 꺼짐 방지 기능
+- **TTS 캐싱**: 브리핑 오디오 사전 로딩으로 성능 향상
+- **비활성 감지**: 2분간 음성 미감지 시 경고 알림
+
+### 🔄 개선된 기능
+- 세션 중단 시 데이터 유실 방지
+- 사용자 의도 확인을 통한 실수 방지
+- 모바일 UX 개선 (화면 꺼짐 방지)
+
+---
+
+## 🚀 향후 계획
+
+상세한 로드맵은 [TODO.md](./TODO.md)를 참고하세요.
+
+### 단기 목표 (1-2주)
+- [ ] Gemini Pro TTS 적용 (브리핑 및 쉐도잉)
+- [ ] localStorage 세션 자동 저장 (새로고침 복구)
+- [ ] 로딩 스켈레톤 UI 적용
+
+### 중기 목표 (1개월)
+- [ ] **Supabase 통합**
+  - 학습 세션 기록 저장
+  - 사용자 진도 추적 대시보드
+  - Edge Function으로 API 보안 강화
+- [ ] **n8n 자동화 워크플로우**
+  - 일일 학습 알림
+  - 주간 리포트 자동 생성
+  - 멀티 소스 뉴스 큐레이션
+
+### 장기 목표 (2-3개월)
+- [ ] App.tsx 분할 (컴포넌트 파일 분리)
+- [ ] 커스텀 Hooks 추가 (`useAudioSession`, `useLiveSession`)
+- [ ] ScriptProcessorNode → AudioWorklet 마이그레이션
+- [ ] 난이도 레벨 선택 (A2, B1, B2, C1)
+- [ ] 커스텀 주제 입력 기능
+- [ ] 음성 인식 정확도 평가 및 발음 피드백
+
+---
+
 ## 🐛 알려진 이슈
 
 1. **LiveSession 타입**: Gemini SDK가 타입을 export하지 않아 `any` 사용
 2. **ScriptProcessorNode**: Deprecated API 사용 (AudioWorklet 마이그레이션 예정)
 3. **모바일 최적화**: 일부 모바일 브라우저에서 마이크 권한 문제 가능
+4. **API 키 저장**: localStorage 사용 중 (향후 서버사이드 보안 강화 예정)
 
 ---
 
@@ -284,7 +346,7 @@ npm run preview      # 빌드 미리보기
 
 **만든이**: Google AI Studio + Custom Development
 
-**최종 업데이트**: 2025-11-17
+**최종 업데이트**: 2025-12-03
 
 [![Star on GitHub](https://img.shields.io/github/stars/HouuYa/Gemini-Engilsh-Teacher?style=social)](https://github.com/HouuYa/Gemini-Engilsh-Teacher)
 
