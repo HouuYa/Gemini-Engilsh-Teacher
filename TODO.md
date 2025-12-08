@@ -1,10 +1,11 @@
 # Gemini English Teacher - TODO List
 
-## 🚨 긴급 (High Priority)
+## 긴급 (High Priority)
 
 ### 버그 수정
 - [x] beforeunload 이벤트로 페이지 이탈 경고 추가
 - [x] Stop & Restart 버튼 클릭 시 확인 모달 추가
+- [x] Step 1 Briefing TTS 버그 수정 (AudioContext suspended 상태 처리)
 - [ ] localStorage 세션 자동 저장 (새로고침 후 복구 기능)
 - [ ] 모바일 화면 꺼짐 방지 개선 (현재 Wake Lock 불안정)
 
@@ -13,7 +14,7 @@
   - Edge Function으로 API 호출 이동 고려
   - 또는 Supabase Auth + 환경 변수 사용
 
-## 🎯 단기 목표 (1-2주)
+## 단기 목표 (1-2주)
 
 ### 기능 개선
 - [x] **실시간 대화 개선** (2025-12-03 완료)
@@ -32,7 +33,7 @@
 - [ ] 쉐도잉 연습 시 사용자 음성 녹음 및 비교 기능
 - [ ] 모바일 반응형 개선 (특히 Step 2 Discussion 화면)
 
-## 📊 중기 목표 (1개월)
+## 중기 목표 (1개월)
 
 ### Supabase 통합
 - [ ] Supabase 프로젝트 생성 및 DB 스키마 설계
@@ -85,7 +86,7 @@
   - 중복 제거 및 품질 필터링
   - Supabase에 큐레이션된 뉴스 저장
 
-## 🔮 장기 목표 (2-3개월)
+## 장기 목표 (2-3개월)
 
 ### 아키텍처 개선
 - [ ] App.tsx 분할 (각 Step을 별도 파일로)
@@ -142,7 +143,7 @@
 - [ ] CI/CD 파이프라인 구축
   - GitHub Actions로 자동 테스트 및 배포
 
-## 📝 백로그 (우선순위 낮음)
+## 백로그 (우선순위 낮음)
 
 - [ ] 다크/라이트 모드 토글
 - [ ] 다국어 지원 (영어 UI 옵션)
@@ -161,13 +162,15 @@
   - Enter: 다음 단계
   - Esc: 세션 종료
 
-## ✅ 완료
+## 완료
 
 ### 2025-12-03 업데이트
 - [x] **실시간 대화 개선 3종 세트**
   - Interrupt 기능: AI 말하는 중 사용자가 끼어들 수 있도록 구현
   - 응답 지연 최적화: 오디오 버퍼 크기 감소 및 VAD 설정 최적화
   - VAD 개선: AnalyserNode 추가하여 실시간 음성 활동 감지 및 UI 표시
+- [x] Step 1 Briefing TTS 버그 수정 (AudioContext suspended 상태 처리)
+- [x] 문서화 표준 확립 (이모지 제거, 명사형 문장 종결)
 
 ### 이전 업데이트
 - [x] Wake Lock API 통합 (모바일 화면 꺼짐 방지)
@@ -177,7 +180,7 @@
 - [x] 페이지 이탈 경고 (beforeunload 이벤트)
 - [x] Stop & Restart 확인 모달
 
-## 📊 n8n + Supabase 통합 상세 계획
+## n8n + Supabase 통합 상세 계획
 
 ### Phase 1: Supabase 기본 설정 (1주)
 1. Supabase 프로젝트 생성
@@ -234,7 +237,7 @@
                      └─────────────────┘
 ```
 
-## 🔗 참고 리소스
+## 참고 리소스
 
 - [Gemini API Docs](https://ai.google.dev/docs)
 - [Supabase Docs](https://supabase.com/docs)
@@ -245,4 +248,4 @@
 ---
 
 **최종 업데이트**: 2025-12-03
-**버전**: 1.0
+**버전**: 1.1

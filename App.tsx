@@ -316,6 +316,12 @@ export default function App() {
       }
 
       const ctx = ttsAudioContextRef.current;
+
+      // AudioContext가 suspended 상태일 수 있음 (iOS/브라우저 제한) - resume 필요
+      if (ctx.state === 'suspended') {
+        await ctx.resume();
+      }
+
       const audioBuffer = await generateTTSAudio(text, apiKey, ctx);
 
       const source = ctx.createBufferSource();

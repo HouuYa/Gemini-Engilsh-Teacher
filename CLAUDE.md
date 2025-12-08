@@ -1,19 +1,19 @@
 # CLAUDE.md - AI Assistant Guide for Gemini English Teacher
 
-## 📋 프로젝트 개요
+## 프로젝트 개요
 
-**Gemini English Teacher** (매일 영어 토론 선생님)는 Google Gemini API를 활용한 AI 기반 영어 학습 애플리케이션입니다.
+**Gemini English Teacher** (매일 영어 토론 선생님)는 Google Gemini API를 활용한 AI 기반 영어 학습 애플리케이션임.
 
 ### 핵심 기능
-- 🎤 **실시간 음성 대화** - AI 토론 파트너 Alex와 자연스러운 대화
-- 🚀 **Interrupt 지원** - AI 말하는 중에도 자연스럽게 끼어들 수 있음 (2025-12-03 신규)
-- ⚡ **최적화된 응답 지연** - 빠른 응답과 자연스러운 대화 흐름 (2025-12-03 개선)
-- 🎙️ **실시간 VAD** - 음성 활동 감지 및 UI 표시 (2025-12-03 신규)
-- 📚 **5단계 학습 플로우** - Briefing → Discussion → Feedback → Shadowing → Completion
-- ✅ **종합 피드백** - 문법, 어휘, 유창성에 대한 상세한 분석
-- 🗣️ **쉐도잉 연습** - 발음과 내재화를 위한 반복 학습
-- 🔊 **TTS 기능** - 텍스트 읽기 기능 제공
-- 🎯 **멀티모달 AI** - Gemini의 네이티브 오디오 및 라이브 세션 API 활용
+- **실시간 음성 대화** - AI 토론 파트너 Alex와 자연스러운 대화
+- **Interrupt 지원** - AI 말하는 중에도 자연스럽게 끼어들 수 있음 (2025-12-03 신규)
+- **최적화된 응답 지연** - 빠른 응답과 자연스러운 대화 흐름 (2025-12-03 개선)
+- **실시간 VAD** - 음성 활동 감지 및 UI 표시 (2025-12-03 신규)
+- **5단계 학습 플로우** - Briefing → Discussion → Feedback → Shadowing → Completion
+- **종합 피드백** - 문법, 어휘, 유창성에 대한 상세한 분석
+- **쉐도잉 연습** - 발음과 내재화를 위한 반복 학습
+- **TTS 기능** - 텍스트 읽기 기능 제공
+- **멀티모달 AI** - Gemini의 네이티브 오디오 및 라이브 세션 API 활용
 
 ### 대상 사용자
 - **CEFR B1-B2 레벨** 영어 학습자 (중급)
@@ -25,7 +25,7 @@
 
 ---
 
-## 🛠️ 기술 스택
+## 기술 스택
 
 ### 핵심 기술
 | 기술 | 버전 | 용도 |
@@ -50,7 +50,7 @@
 
 ---
 
-## 📁 코드베이스 구조
+## 코드베이스 구조
 
 ```
 /
@@ -77,15 +77,15 @@
 
 ### 파일별 상세 설명
 
-#### 📄 `App.tsx` (802줄)
+#### App.tsx (802줄)
 애플리케이션의 핵심 컴포넌트:
 
 **담당 역할**:
-- ✨ **상태 관리**: React Hooks를 사용한 모든 애플리케이션 상태
-- 🔄 **비즈니스 로직**: 단계 진행, 세션 관리, API 오케스트레이션
-- 🎨 **UI 컴포넌트**: 모든 5단계에 대한 인라인 컴포넌트 정의
-- 🎵 **오디오 관리**: 입출력을 위한 Web Audio API 통합
-- 🎙️ **라이브 세션**: 마이크 접근, 실시간 전사, 오디오 재생
+- **상태 관리**: React Hooks를 사용한 모든 애플리케이션 상태
+- **비즈니스 로직**: 단계 진행, 세션 관리, API 오케스트레이션
+- **UI 컴포넌트**: 모든 5단계에 대한 인라인 컴포넌트 정의
+- **오디오 관리**: 입출력을 위한 Web Audio API 통합
+- **라이브 세션**: 마이크 접근, 실시간 전사, 오디오 재생
 
 **정의된 주요 컴포넌트**:
 ```typescript
@@ -99,7 +99,7 @@
 - Step5Completion    // 세션 완료 화면
 ```
 
-#### 📄 `services/geminiService.ts`
+#### services/geminiService.ts
 중앙 집중식 API 서비스 레이어:
 
 ```typescript
@@ -110,7 +110,7 @@ getShadowingSentences()  // 연습용 문장 추출
 parseJsonResponse()      // JSON 파싱 및 에러 처리
 ```
 
-#### 📄 `utils/audio.ts`
+#### utils/audio.ts
 오디오 처리 유틸리티:
 
 ```typescript
@@ -120,7 +120,7 @@ decodeAudioData()  // PCM을 AudioBuffer로 변환
 createBlob()       // Float32Array를 Gemini Blob 형식으로 변환
 ```
 
-#### 📄 `types.ts`
+#### types.ts
 TypeScript 타입 정의:
 
 ```typescript
@@ -133,7 +133,7 @@ TranscriptItem  // 대화 전사 항목
 
 ---
 
-## 🏗️ 핵심 아키텍처 패턴
+## 핵심 아키텍처 패턴
 
 ### 1. 상태 관리
 메인 `App` 컴포넌트에서 React Hooks로 모든 상태 관리:
@@ -193,15 +193,15 @@ mediaStreamRef         // 사용자 미디어 스트림
 scriptProcessorRef     // 오디오 처리 노드
 ```
 
-⚠️ **중요**: 언마운트 또는 단계 변경 시 반드시 `cleanupLiveSession()` 호출!
+**중요**: 언마운트 또는 단계 변경 시 반드시 `cleanupLiveSession()` 호출
 
 ### 4. 서비스 레이어 추상화
 모든 Gemini API 호출은 `geminiService.ts`를 통해 처리:
 
-- ✅ API 키 관리 중앙화
-- ✅ 표준화된 에러 처리
-- ✅ JSON 파싱 유틸리티 제공
-- ✅ UI 로직과 관심사 분리
+- API 키 관리 중앙화
+- 표준화된 에러 처리
+- JSON 파싱 유틸리티 제공
+- UI 로직과 관심사 분리
 
 ### 5. 실시간 전사(Transcription)
 두 개의 병렬 전사 스트림:
@@ -216,7 +216,7 @@ transcript          // 전체 대화 히스토리 (영구)
 
 ---
 
-## 🚀 개발 워크플로우
+## 개발 워크플로우
 
 ### 초기 설정
 ```bash
@@ -246,13 +246,13 @@ npm run preview
 
 ---
 
-## 📐 코딩 컨벤션
+## 코딩 컨벤션
 
 ### TypeScript 컨벤션
-1. ✅ **명시적 타이핑** - 모든 함수 매개변수 및 반환 타입
-2. ✅ **Interface over Type** - 객체 구조에는 interface 사용
-3. ✅ **Type over Enum** - 문자열 유니온에는 type 사용
-4. ✅ **제네릭 타이핑** - 유틸리티 함수에 제네릭 활용
+1. **명시적 타이핑** - 모든 함수 매개변수 및 반환 타입
+2. **Interface over Type** - 객체 구조에는 interface 사용
+3. **Type over Enum** - 문자열 유니온에는 type 사용
+4. **제네릭 타이핑** - 유틸리티 함수에 제네릭 활용
 
 **예시**:
 ```typescript
@@ -272,11 +272,11 @@ export type LiveStatus = 'idle' | 'connecting' | 'listening' | 'speaking';
 ```
 
 ### React 컨벤션
-1. ✅ **함수형 컴포넌트** - 클래스 컴포넌트 사용 안 함
-2. ✅ **React.FC** 타입 어노테이션
-3. ✅ **useCallback** - 자식에게 전달되는 함수
-4. ✅ **useEffect 정리** - 오디오/세션 관리 시 cleanup
-5. ✅ **인라인 컴포넌트** - App.tsx 내부에 정의
+1. **함수형 컴포넌트** - 클래스 컴포넌트 사용 안 함
+2. **React.FC** 타입 어노테이션
+3. **useCallback** - 자식에게 전달되는 함수
+4. **useEffect 정리** - 오디오/세션 관리 시 cleanup
+5. **인라인 컴포넌트** - App.tsx 내부에 정의
 
 **예시**:
 ```typescript
@@ -289,8 +289,8 @@ const Step1Briefing: React.FC<{
 ```
 
 ### 스타일링 컨벤션
-1. ✅ **Tailwind 유틸리티 클래스** 모든 스타일링에 사용
-2. ✅ **커스텀 컬러 팔레트** (index.html에 정의):
+1. **Tailwind 유틸리티 클래스** 모든 스타일링에 사용
+2. **커스텀 컬러 팔레트** (index.html에 정의):
    ```javascript
    'brand-blue': '#4285F4',      // 주요 액션
    'brand-green': '#34A853',     // 성공/긍정
@@ -301,8 +301,8 @@ const Step1Briefing: React.FC<{
    'dark-text-primary': '#f2f3f5',   // 주요 텍스트
    'dark-text-secondary': '#b5bac1', // 보조 텍스트
    ```
-3. ✅ **반응형 디자인** - 모바일 우선 접근 (sm:, md: breakpoints)
-4. ✅ **다크 모드 전용** - 라이트 모드 없음
+3. **반응형 디자인** - 모바일 우선 접근 (sm:, md: breakpoints)
+4. **다크 모드 전용** - 라이트 모드 없음
 
 ### 네이밍 컨벤션
 | 대상 | 컨벤션 | 예시 |
@@ -315,7 +315,7 @@ const Step1Briefing: React.FC<{
 
 ---
 
-## 🔧 일반적인 개발 작업
+## 일반적인 개발 작업
 
 ### 새로운 단계 추가하기
 1. `types.ts`의 `Step` 타입에 단계 번호 추가
@@ -359,7 +359,7 @@ TTS는 두 곳에서 처리됨:
 
 ---
 
-## ⚠️ 중요한 기술적 노트
+## 중요한 기술적 노트
 
 ### Web Audio API 고려사항
 
@@ -371,29 +371,29 @@ inputAudioContextRef.current = new AudioContext({ sampleRate: 16000 });
 // 출력 (TTS/Live): 24kHz
 outputAudioContextRef.current = new AudioContext({ sampleRate: 24000 });
 ```
-⚠️ 정확한 오디오 처리를 위해 중요함!
+정확한 오디오 처리를 위해 중요함.
 
 #### ScriptProcessorNode 사용
-- ⚠️ 현재 **deprecated** API 사용 중
-- 💡 향후 **AudioWorklet**으로 마이그레이션 고려
+- 현재 **deprecated** API 사용 중
+- 향후 **AudioWorklet**으로 마이그레이션 고려
 
 #### AudioContext 생애주기
 ```typescript
-// ✅ 사용하지 않을 때는 반드시 닫기
+// 사용하지 않을 때는 반드시 닫기
 if (audioContext && audioContext.state !== 'closed') {
   audioContext.close();
 }
 
-// ❌ 닫힌 컨텍스트는 재사용 불가
-// ✅ 작업 전에 상태 확인
+// 닫힌 컨텍스트는 재사용 불가
+// 작업 전에 상태 확인
 ```
 
 ### Gemini API 주의사항
 
 #### 1. 타입 이슈
 ```typescript
-// ❌ SDK에서 LiveSession 타입을 export하지 않음
-// ✅ 해결방법: any 타입 사용
+// SDK에서 LiveSession 타입을 export하지 않음
+// 해결방법: any 타입 사용
 const sessionPromiseRef = useRef<Promise<any> | null>(null);
 ```
 
@@ -407,7 +407,7 @@ const parseJsonResponse = <T,>(text: string, typeName: string): T => {
 ```
 
 #### 3. Google Search Tool
-- ⚠️ 특정 모델에서만 작동
+- 특정 모델에서만 작동
 - `fetchBriefing()`에서 기사 검색에 사용
 
 #### 4. 오디오 포맷
@@ -429,14 +429,14 @@ const parseJsonResponse = <T,>(text: string, typeName: string): T => {
 | Effect 의존성 | 사용된 모든 변수를 의존성 배열에 포함 |
 
 ### 성능 고려사항
-1. 📦 **큰 컴포넌트**: App.tsx가 802줄 - 더 커지면 분할 고려
-2. 🔄 **리렌더링**: 자식에게 전달되는 함수에 `useCallback` 사용
-3. 🎵 **오디오 버퍼링**: Set으로 오디오 소스 추적하여 메모리 누수 방지
-4. 📝 **전사 증가**: 긴 대화는 렌더링 속도 저하 가능
+1. **큰 컴포넌트**: App.tsx가 802줄 - 더 커지면 분할 고려
+2. **리렌더링**: 자식에게 전달되는 함수에 `useCallback` 사용
+3. **오디오 버퍼링**: Set으로 오디오 소스 추적하여 메모리 누수 방지
+4. **전사 증가**: 긴 대화는 렌더링 속도 저하 가능
 
 ---
 
-## 🔍 에러 핸들링 패턴
+## 에러 핸들링 패턴
 
 ### API 에러
 ```typescript
@@ -469,7 +469,7 @@ try {
 
 ---
 
-## ✅ 테스트 체크리스트
+## 테스트 체크리스트
 
 변경 사항 적용 시 수동 테스트:
 
@@ -486,19 +486,19 @@ try {
 
 ---
 
-## 🐛 알려진 문제 및 제한사항
+## 알려진 문제 및 제한사항
 
-1. ⚠️ **LiveSession 타입**: SDK가 타입을 export하지 않음, `any` 사용
-2. ⚠️ **ScriptProcessorNode**: Deprecated API, AudioWorklet으로 마이그레이션 필요
-3. ⚠️ **모놀리식 App.tsx**: 큰 단일 파일, 분할 고려 필요
-4. ⚠️ **테스트 없음**: 자동화된 테스트 인프라 없음
-5. ⚠️ **API 키 저장**: localStorage 저장 (보안 고려 필요)
-6. ⚠️ **에러 복구**: API 실패에 대한 재시도 로직 제한적
-7. ⚠️ **오프라인 지원**: 없음 - 인터넷 연결 필수
+1. **LiveSession 타입**: SDK가 타입을 export하지 않음, `any` 사용
+2. **ScriptProcessorNode**: Deprecated API, AudioWorklet으로 마이그레이션 필요
+3. **모놀리식 App.tsx**: 큰 단일 파일, 분할 고려 필요
+4. **테스트 없음**: 자동화된 테스트 인프라 없음
+5. **API 키 저장**: localStorage 저장 (보안 고려 필요)
+6. **에러 복구**: API 실패에 대한 재시도 로직 제한적
+7. **오프라인 지원**: 없음 - 인터넷 연결 필수
 
 ---
 
-## 💡 향후 개선 아이디어
+## 향후 개선 아이디어
 
 ### 1. 코드 구조
 - [ ] App.tsx를 개별 단계 컴포넌트로 분할
@@ -527,11 +527,11 @@ try {
 
 ---
 
-## 🤖 AI 어시스턴트 가이드라인
+## AI 어시스턴트 가이드라인
 
 이 코드베이스 작업 시:
 
-### ✅ DO
+### DO (해야 할 것)
 1. **일관성 유지** - 기존 상태 관리, 스타일링, 컴포넌트 구조 패턴 따르기
 2. **플로우 보존** - 5단계 플로우는 UX의 핵심, 절대 변경 금지
 3. **정리 처리** - 오디오 로직 수정 시 항상 컨텍스트와 세션 정리
@@ -543,7 +543,7 @@ try {
 9. **성능** - 상태 수정 시 리렌더링 영향 고려
 10. **보안** - API 키나 민감한 데이터 절대 커밋 금지
 
-### ❌ DON'T
+### DON'T (하지 말아야 할 것)
 1. 5단계 플로우 변경 금지
 2. 정리 없이 오디오 컨텍스트 수정 금지
 3. API 키를 코드에 하드코딩 금지
@@ -560,10 +560,10 @@ try {
 
 ---
 
-## 🚀 실시간 대화 개선 (2025-12-03)
+## 실시간 대화 개선 (2025-12-03)
 
 ### 개요
-Step 2 Discussion의 실시간 대화 기능에 세 가지 주요 개선 사항이 추가되었습니다:
+Step 2 Discussion의 실시간 대화 기능에 세 가지 주요 개선 사항이 추가됨:
 
 1. **Interrupt 기능** - 사용자가 AI 말하는 중에 끼어들 수 있음
 2. **응답 지연 최적화** - 더 빠르고 자연스러운 대화 흐름
@@ -601,7 +601,7 @@ let wasSpeaking = false;     // 이전 프레임 음성 상태
 
 `App.tsx:457`
 ```typescript
-// 🚀 개선 #2: 응답 지연 최적화 - 버퍼 크기 감소 (4096 → 2048)
+// 개선 #2: 응답 지연 최적화 - 버퍼 크기 감소 (4096 → 2048)
 const scriptProcessor = inputAudioContextRef.current!.createScriptProcessor(2048, 1, 1);
 ```
 
@@ -637,7 +637,7 @@ realtimeInputConfig: {
 
 `App.tsx:450-454`
 ```typescript
-// 🚀 개선 #3: VAD 개선 - AnalyserNode로 실시간 음성 레벨 감지
+// 개선 #3: VAD 개선 - AnalyserNode로 실시간 음성 레벨 감지
 const analyser = inputAudioContextRef.current!.createAnalyser();
 analyser.fftSize = 512;
 analyser.smoothingTimeConstant = 0.8;
@@ -652,7 +652,7 @@ analyserRef.current = analyser;
 
 `App.tsx:469-473`
 ```typescript
-// 🚀 개선 #3: VAD - 실시간 음성 레벨 계산
+// 개선 #3: VAD - 실시간 음성 레벨 계산
 analyser.getByteFrequencyData(dataArray);
 const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
 const volumeDb = 20 * Math.log10(average / 255);
@@ -675,14 +675,14 @@ const [userSpeaking, setUserSpeaking] = useState(false);
 // UI 표시
 {userSpeaking && (
     <span className="text-brand-blue flex items-center gap-1 animate-pulse">
-        🎤 <span>음성 감지 중...</span>
+        <span>음성 감지 중...</span>
     </span>
 )}
 ```
 
 **효과**:
 - 사용자가 말할 때 실시간 피드백
-- "🎤 음성 감지 중..." 메시지 표시
+- "음성 감지 중..." 메시지 표시
 - Tailwind `animate-pulse`로 시각적 효과
 
 ### 오디오 신호 흐름
@@ -708,7 +708,7 @@ const [userSpeaking, setUserSpeaking] = useState(false);
   ↓             ↓
 턴 감지       [Base64 Audio]
   ↓             ↓
-실사 업데이트  [AudioContext 24kHz]
+전사 업데이트  [AudioContext 24kHz]
               ↓
             [스피커]
 ```
@@ -730,9 +730,9 @@ const [userSpeaking, setUserSpeaking] = useState(false);
 - 음성 감지 상태를 알 수 없음
 
 **After (개선 후)**:
-- ✅ AI 말하는 중에도 자연스럽게 끼어들 수 있음
-- ✅ 턴 전환이 빨라짐 (0.8초 침묵 후)
-- ✅ 실시간으로 음성 감지 상태 확인 가능
+- AI 말하는 중에도 자연스럽게 끼어들 수 있음
+- 턴 전환이 빨라짐 (0.8초 침묵 후)
+- 실시간으로 음성 감지 상태 확인 가능
 
 ### 참고 자료
 
@@ -743,7 +743,7 @@ const [userSpeaking, setUserSpeaking] = useState(false);
 
 ---
 
-## 📚 유용한 명령어
+## 유용한 명령어
 
 ```bash
 # 개발
@@ -759,7 +759,7 @@ npm run preview      # 프로덕션 빌드 미리보기
 
 ---
 
-## 🔗 연락처 및 리소스
+## 연락처 및 리소스
 
 - **AI Studio 앱**: https://ai.studio/apps/drive/1hyv2-XvnyhVAbMmweC8AsHPJiwcmxFfn
 - **Gemini API 문서**: https://ai.google.dev/docs
@@ -769,7 +769,7 @@ npm run preview      # 프로덕션 빌드 미리보기
 
 ---
 
-## 📝 버전 정보
+## 버전 정보
 
 **최종 업데이트**: 2025-12-03
 **버전**: 2.1 (실시간 대화 개선 + 문서화 강화)
