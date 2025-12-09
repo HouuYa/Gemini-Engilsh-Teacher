@@ -4,10 +4,16 @@
 
 **AI와 함께하는 실전 영어 토론 학습**
 
-[![React](https://img.shields.io/badge/React-19.2.0-61DAFB?logo=react&logoColor=white)](https://react.dev)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.8.2-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Vite](https://img.shields.io/badge/Vite-6.2.0-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
-[![Gemini API](https://img.shields.io/badge/Gemini-API-4285F4?logo=google&logoColor=white)](https://ai.google.dev/)
+[Web App(Netlify) 보기](https://tennis-scoring-mate.netlify.app/) | [개발자 가이드](./CLAUDE.md) | [작업 목록](./TODO.md)
+
+**최종 업데이트**: 2025-12-09
+
+---
+
+## 프로젝트 개요
+
+Gemini English Teacher는 Google의 최신 Gemini API를 활용한 AI 기반 영어 학습 애플리케이션임.
+실시간 음성 대화, 즉각적인 피드백, 체계적인 쉐도잉 연습을 통해 CEFR B1-B2 레벨 학습자의 영어 토론 능력 향상을 지원함.
 
 [AI Studio 원본](https://ai.studio/apps/drive/1hyv2-XvnyhVAbMmweC8AsHPJiwcmxFfn) • [개발자 가이드](./CLAUDE.md) • [작업 목록](./TODO.md)
 
