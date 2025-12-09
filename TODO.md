@@ -6,6 +6,7 @@
 - [x] beforeunload 이벤트로 페이지 이탈 경고 추가
 - [x] Stop & Restart 버튼 클릭 시 확인 모달 추가
 - [x] Step 1 Briefing TTS 버그 수정 (AudioContext suspended 상태 처리)
+- [x] Safari/iOS TTS 오디오 재생 문제 수정 (unlockAudioContext 추가)
 - [ ] localStorage 세션 자동 저장 (새로고침 후 복구 기능)
 - [ ] 모바일 화면 꺼짐 방지 개선 (현재 Wake Lock 불안정)
 
@@ -22,6 +23,11 @@
   - ✅ 응답 지연 최적화: 버퍼 크기 감소 (4096 → 2048)
   - ✅ VAD 개선: 실시간 음성 활동 감지 및 UI 표시
   - ✅ Gemini Live API 설정 최적화 (silenceDurationMs: 800ms)
+- [x] **Token 사용량 최적화** (2025-12-09 완료)
+  - ✅ 프롬프트 길이 70-80% 감소 (fetchBriefing, getFeedback, getShadowingSentences)
+  - ✅ Live Session instruction 67% 단축
+  - ✅ API config 최적화 (temperature, candidateCount)
+  - ✅ 코드 리뷰 반영: 품질 유지 키워드 추가
 - [ ] Gemini Pro TTS를 Step 1, 4에 적용
 - [ ] 에러 발생 시 자동 재시도 로직 강화 (retryWithBackoff 개선)
 - [ ] Step 2 대화 종료 후 전사 내용 localStorage 백업
@@ -164,6 +170,18 @@
 
 ## 완료
 
+### 2025-12-09 업데이트
+- [x] **Safari/iOS 호환성 개선**
+  - Safari TTS 오디오 재생 문제 수정 (unlockAudioContext 추가)
+  - 개발 환경 전용 로깅 (프로덕션 빌드 정리)
+- [x] **Token 사용량 최적화 (60-70% 감소)**
+  - 프롬프트 최적화: fetchBriefing (80%), getFeedback (73%), getShadowingSentences (73%)
+  - Live Session instruction 67% 단축
+  - API config 설정 추가 (temperature, candidateCount)
+- [x] **코드 품질 개선**
+  - 코드 리뷰 제안 반영 (unique, comprehensive, objective 키워드 추가)
+  - 프롬프트 품질과 token 효율성 균형 유지
+
 ### 2025-12-03 업데이트
 - [x] **실시간 대화 개선 3종 세트**
   - Interrupt 기능: AI 말하는 중 사용자가 끼어들 수 있도록 구현
@@ -247,5 +265,5 @@
 
 ---
 
-**최종 업데이트**: 2025-12-03
-**버전**: 1.1
+**최종 업데이트**: 2025-12-09
+**버전**: 1.2

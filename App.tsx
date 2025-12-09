@@ -301,6 +301,10 @@ export default function App() {
 
   const handlePlayTTS = useCallback(async (text: string, sectionId: string) => {
     if (!apiKey) return;
+
+    // Safari/iOS 대응: AudioContext unlock
+    await unlockAudioContext();
+
     if (ttsState.playing) {
       stopTtsPlayback();
       if (ttsState.sectionId === sectionId) {
@@ -319,7 +323,13 @@ export default function App() {
 
       // AudioContext가 suspended 상태일 수 있음 (iOS/브라우저 제한) - resume 필요
       if (ctx.state === 'suspended') {
+        if (import.meta.env.DEV) {
+          console.log('[TTS] Resuming suspended AudioContext...');
+        }
         await ctx.resume();
+        if (import.meta.env.DEV) {
+          console.log('[TTS] AudioContext state after resume:', ctx.state);
+        }
       }
 
       const audioBuffer = await generateTTSAudio(text, apiKey, ctx);
@@ -340,7 +350,7 @@ export default function App() {
       setError(friendlyMessage);
       stopTtsPlayback();
     }
-  }, [apiKey, ttsState.playing, ttsState.sectionId, stopTtsPlayback]);
+  }, [apiKey, ttsState.playing, ttsState.sectionId, stopTtsPlayback, unlockAudioContext]);
 
   // 비활성 타임아웃 관리
   const resetInactivityTimer = useCallback(() => {
@@ -908,8 +918,10 @@ const Step2Discussion: React.FC<{
     }, [transcript, liveUserTranscript, liveAlexTranscript]);
     
     const handleStart = () => {
+        // Token 최적화: 질문 목록 대신 첫 질문만 전달
+        const firstQuestion = questions[0] || "What's your first impression?";
         startLiveSession(
-            `You are Alex. Start the conversation by asking for the user's first impression of the article. Then, guide the user through these discussion questions one by one: ${questions.join(', ')}. After the last question, say "I've gathered my feedback. Would you like to see it now?"`
+            `You are Alex, a discussion partner. Ask: "${firstQuestion}" Then naturally discuss the topic. After good conversation, ask if user wants feedback.`
         );
     };
 
