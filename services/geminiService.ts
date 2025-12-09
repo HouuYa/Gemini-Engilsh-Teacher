@@ -46,7 +46,7 @@ export const checkApiStatus = async (model: string, apiKey: string): Promise<{ok
 export const fetchBriefing = async (model: string, apiKey: string): Promise<BriefingData> => {
     return retryWithBackoff(async () => {
         const ai = getAi(apiKey);
-        const briefingPrompt = `Find a recent news article (last 3 months) on IT, AI, finance, or self-development. B1-B2 level. Return JSON:
+        const briefingPrompt = `Find a unique, recent news article (last 3 months) on IT, AI, finance, or self-development. B1-B2 level. Return JSON with a valid URL and accurate date:
 {
   "topic": "Title (EN)\\n(KR)",
   "article": {"title": "...", "source": "...", "publication_date": "YYYY-MM-DD"},
@@ -77,7 +77,7 @@ export const getFeedback = async (transcript: TranscriptItem[], model: string, a
         const ai = getAi(apiKey);
         const transcriptText = transcript.map(t => `${t.speaker === 'user' ? 'User' : 'Alex'}: ${t.text}`).join('\n');
 
-        const feedbackPrompt = `Analyze this conversation and provide feedback in JSON:
+        const feedbackPrompt = `Analyze this conversation and provide comprehensive, objective feedback in JSON:
 
 ${transcriptText}
 
@@ -109,10 +109,10 @@ Return:
 export const getShadowingSentences = async (feedback: FeedbackData, model: string, apiKey: string): Promise<string[]> => {
     return retryWithBackoff(async () => {
         const ai = getAi(apiKey);
-        const sentencePrompt = `Select 3 most important corrected sentences for shadowing practice from this feedback:
+        const sentencePrompt = `From the 'corrected' sentences in the grammar/vocabulary feedback below, select the 3 most important for shadowing practice.
 ${JSON.stringify(feedback.improvement_suggestions)}
 
-Return JSON array: ["sentence 1", "sentence 2", "sentence 3"]`;
+Return a JSON array of strings: ["sentence 1", "sentence 2", "sentence 3"]`;
 
         const response = await ai.models.generateContent({
             model,

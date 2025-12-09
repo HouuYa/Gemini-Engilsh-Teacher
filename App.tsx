@@ -323,9 +323,13 @@ export default function App() {
 
       // AudioContext가 suspended 상태일 수 있음 (iOS/브라우저 제한) - resume 필요
       if (ctx.state === 'suspended') {
-        console.log('[TTS] Resuming suspended AudioContext...');
+        if (import.meta.env.DEV) {
+          console.log('[TTS] Resuming suspended AudioContext...');
+        }
         await ctx.resume();
-        console.log('[TTS] AudioContext state after resume:', ctx.state);
+        if (import.meta.env.DEV) {
+          console.log('[TTS] AudioContext state after resume:', ctx.state);
+        }
       }
 
       const audioBuffer = await generateTTSAudio(text, apiKey, ctx);
