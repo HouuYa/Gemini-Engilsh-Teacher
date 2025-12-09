@@ -4,7 +4,7 @@
 
 **AI와 함께하는 실전 영어 토론 학습**
 
-[Web App(Netlify) 보기](https://tennis-scoring-mate.netlify.app/) | [개발자 가이드](./CLAUDE.md) | [작업 목록](./TODO.md)
+[Web App(Netlify) 보기](https://gemini-engilsh-teacher.netlify.app/) | [개발자 가이드](./CLAUDE.md) | [작업 목록](./TODO.md)
 
 **최종 업데이트**: 2025-12-09
 
@@ -144,6 +144,22 @@ Base64 Audio → AudioContext (24kHz) → Speaker
 
 ## Changelog
 
+### v2.2 (2025-12-09)
+
+**Safari Compatibility**
+- Fixed TTS audio playback on iPhone Safari by unlocking AudioContext
+- Added development-only debug logging to reduce production console clutter
+
+**Token Usage Optimization (60-70% reduction)**
+- Prompt optimization: fetchBriefing (80%), getFeedback (73%), getShadowingSentences (73%)
+- Live Session instruction shortened by 67%
+- Added temperature and candidateCount config to all API calls
+- Enhanced prompt quality with 'unique', 'comprehensive', and 'objective' keywords
+
+**Code Quality**
+- Applied code review suggestions for improved AI output quality
+- Better error handling and user feedback
+
 ### v2.1 (2025-12-03)
 
 **Real-time Conversation Improvements**
@@ -276,7 +292,7 @@ See [TODO.md](./TODO.md) for detailed roadmap.
 
 Originally created by **Google AI Studio**, enhanced with **Claude Code**.
 
-**Version**: v2.1 | **Last Updated**: 2025-12-03
+**Version**: v2.2 | **Last Updated**: 2025-12-09
 
 ---
 

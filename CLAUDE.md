@@ -761,7 +761,9 @@ npm run preview      # 프로덕션 빌드 미리보기
 
 ## 연락처 및 리소스
 
+- **Web App (Netlify)**: https://gemini-engilsh-teacher.netlify.app/
 - **AI Studio 앱**: https://ai.studio/apps/drive/1hyv2-XvnyhVAbMmweC8AsHPJiwcmxFfn
+- **GitHub Repository**: https://github.com/HouuYa/Gemini-Engilsh-Teacher
 - **Gemini API 문서**: https://ai.google.dev/docs
 - **Gemini SDK**: https://github.com/google/genai-js
 - **React 문서**: https://react.dev
@@ -771,11 +773,12 @@ npm run preview      # 프로덕션 빌드 미리보기
 
 ## 버전 정보
 
-**최종 업데이트**: 2025-12-03
-**버전**: 2.1 (실시간 대화 개선 + 문서화 강화)
+**최종 업데이트**: 2025-12-09
+**버전**: 2.2 (Safari 호환성 + Token 최적화)
 **작성자**: AI 어시스턴트를 위한 종합 가이드
 
 ### 변경 이력
+- **v2.2** (2025-12-09): Safari TTS 수정, Token 사용량 60-70% 감소, 프롬프트 품질 개선
 - **v2.1** (2025-12-03): Interrupt, VAD, 응답 지연 최적화 추가
 - **v2.0** (2025-11-17): 문서화 개선
 - **v1.0** (초기 버전): 기본 기능 구현
