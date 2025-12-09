@@ -8,15 +8,6 @@
 
 **최종 업데이트**: 2025-12-09
 
----
-
-## 프로젝트 개요
-
-Gemini English Teacher는 Google의 최신 Gemini API를 활용한 AI 기반 영어 학습 애플리케이션임.
-실시간 음성 대화, 즉각적인 피드백, 체계적인 쉐도잉 연습을 통해 CEFR B1-B2 레벨 학습자의 영어 토론 능력 향상을 지원함.
-
-[AI Studio 원본](https://ai.studio/apps/drive/1hyv2-XvnyhVAbMmweC8AsHPJiwcmxFfn) • [개발자 가이드](./CLAUDE.md) • [작업 목록](./TODO.md)
-
 </div>
 
 ---
