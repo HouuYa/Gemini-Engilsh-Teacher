@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![Version](https://img.shields.io/badge/version-2.2-blue.svg?cacheSeconds=2592000)
+![Version](https://img.shields.io/badge/version-2.3-blue.svg?cacheSeconds=2592000)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![React](https://img.shields.io/badge/React-19.2-61DAFB?logo=react)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?logo=typescript)
@@ -14,7 +14,7 @@
 
 [**웹 앱 실행하기**](https://gemini-engilsh-teacher.netlify.app/) · [개발자 가이드](./CLAUDE.md) · [로드맵 & 할 일](./TODO.md) · [버그 제보](https://github.com/HouuYa/Gemini-Engilsh-Teacher/issues)
 
-**최종 업데이트**: 2025-12-09 (v2.2)
+**최종 업데이트**: 2026-01-20 (v2.3)
 
 </div>
 
@@ -57,6 +57,7 @@
 | **AI Core** | Google GenAI SDK (v1.29), Gemini 2.5 Flash/Pro, Gemini Native Audio |
 | **Audio** | Web Audio API, ScriptProcessorNode (2048 buffer), AnalyserNode (VAD) |
 | **Services** | Google Search Tool, Gemini TTS (Text-to-Speech) |
+| **Testing** | Vitest 4.0, Testing Library, jsdom |
 | **Deployment** | Netlify |
 
 ---
@@ -113,7 +114,45 @@ graph TD
 
 ---
 
+## 🧪 테스트 (Testing)
+
+프로젝트에는 Vitest 기반의 단위 테스트가 포함되어 있습니다.
+
+```bash
+# 테스트 실행 (watch 모드)
+npm run test
+
+# 테스트 단일 실행
+npm run test:run
+
+# 커버리지 리포트
+npm run test:coverage
+```
+
+### 테스트 구조
+
+```
+tests/
+├── setup.ts                      # 테스트 환경 설정 (AudioContext, navigator mock)
+├── utils/
+│   ├── audio.test.ts            # 오디오 인코딩/디코딩 테스트 (13개)
+│   ├── apiHelpers.test.ts       # API 재시도/에러 처리 테스트 (17개)
+│   └── wakeLock.test.ts         # Wake Lock API 테스트 (9개)
+└── services/
+    ├── geminiService.test.ts    # Gemini API 서비스 테스트 (3개)
+    └── ttsCache.test.ts         # TTS 캐시 테스트 (9개)
+```
+
+**총 51개 테스트** 통과
+
+---
+
 ## 📅 변경 내역 (Changelog)
+
+### v2.3 (2026-01-20) - *테스트 인프라 구축*
+- **🧪 단위 테스트 추가:** Vitest 기반 테스트 인프라 구축 (51개 테스트 통과)
+- **🔧 버그 수정:** `isAlexSpeaking` closure 이슈 해결 (Interrupt 기능 안정화)
+- **📝 코드 품질:** 테스트 커버리지 리포트 및 CI 준비
 
 ### v2.2 (2025-12-09) - *성능 최적화 업데이트*
 - **🔥 토큰 최적화:** 프롬프트 구조 개선으로 API 토큰 사용량 60-70% 감소 (비용 절감 및 속도 향상).
