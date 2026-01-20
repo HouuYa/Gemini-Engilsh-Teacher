@@ -136,11 +136,14 @@
   - 개선점 제안
 
 ### 테스트
-- [ ] Jest + React Testing Library 설정
-- [ ] 단위 테스트 작성
-  - `services/geminiService.ts` 테스트
-  - `utils/audio.ts` 테스트
-  - `utils/apiHelpers.ts` 테스트
+- [x] ~~Jest~~ Vitest + Testing Library 설정 (2026-01-20 완료)
+- [x] 단위 테스트 작성 (2026-01-20 완료)
+  - ✅ `services/geminiService.ts` 테스트 (6개)
+  - ✅ `services/ttsCache.ts` 테스트 (9개)
+  - ✅ `utils/audio.ts` 테스트 (13개)
+  - ✅ `utils/apiHelpers.ts` 테스트 (17개)
+  - ✅ `utils/wakeLock.ts` 테스트 (9개)
+  - **총 54개 테스트 통과**
 - [ ] 컴포넌트 테스트
   - 각 Step 컴포넌트 렌더링 테스트
   - 사용자 인터랙션 시뮬레이션
@@ -169,6 +172,16 @@
   - Esc: 세션 종료
 
 ## 완료
+
+### 2026-01-20 업데이트
+- [x] **테스트 인프라 구축**
+  - Vitest 4.0 + Testing Library + jsdom 설정
+  - 테스트 스크립트 추가 (`test`, `test:run`, `test:coverage`)
+  - 단위 테스트 54개 작성 및 통과
+- [x] **버그 수정: Closure 이슈**
+  - `isAlexSpeaking` 상태가 `onaudioprocess` 콜백에서 항상 초기값을 참조하던 문제 해결
+  - `isAlexSpeakingRef` 추가하여 실시간 상태 추적
+  - Interrupt 기능 안정화
 
 ### 2025-12-09 업데이트
 - [x] **Safari/iOS 호환성 개선**
@@ -265,5 +278,5 @@
 
 ---
 
-**최종 업데이트**: 2025-12-09
-**버전**: 1.2
+**최종 업데이트**: 2026-01-20
+**버전**: 1.3

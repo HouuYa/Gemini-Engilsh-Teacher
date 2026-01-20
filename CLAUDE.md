@@ -471,6 +471,17 @@ try {
 
 ## 테스트 체크리스트
 
+### 자동화 테스트 (필수)
+
+변경 사항 적용 전 반드시 실행:
+
+```bash
+npm run test:run    # 54개 테스트 통과 확인
+npm run build       # 빌드 에러 없음 확인
+```
+
+### 수동 테스트
+
 변경 사항 적용 시 수동 테스트:
 
 - [ ] API 키 검증 (유효/무효 키)
@@ -491,7 +502,7 @@ try {
 1. **LiveSession 타입**: SDK가 타입을 export하지 않음, `any` 사용
 2. **ScriptProcessorNode**: Deprecated API, AudioWorklet으로 마이그레이션 필요
 3. **모놀리식 App.tsx**: 큰 단일 파일, 분할 고려 필요
-4. **테스트 없음**: 자동화된 테스트 인프라 없음
+4. ~~**테스트 없음**: 자동화된 테스트 인프라 없음~~ → **해결됨** (v2.3에서 Vitest 도입)
 5. **API 키 저장**: localStorage 저장 (보안 고려 필요)
 6. **에러 복구**: API 실패에 대한 재시도 로직 제한적
 7. **오프라인 지원**: 없음 - 인터넷 연결 필수
@@ -513,7 +524,9 @@ try {
 - [ ] 전사 내보내기 기능
 
 ### 3. 기술
-- [ ] 자동화된 테스트 추가 (Jest, React Testing Library)
+- [x] ~~자동화된 테스트 추가 (Jest, React Testing Library)~~ → Vitest 도입 완료 (54개 테스트)
+- [ ] 컴포넌트 테스트 추가 (React Testing Library)
+- [ ] E2E 테스트 추가 (Playwright)
 - [ ] AudioWorklet으로 마이그레이션
 - [ ] SDK용 적절한 TypeScript 타입 추가
 - [ ] Error Boundary 구현
@@ -743,6 +756,85 @@ const [userSpeaking, setUserSpeaking] = useState(false);
 
 ---
 
+## 테스트
+
+### 테스트 인프라
+
+프로젝트는 **Vitest** 기반 테스트 환경을 사용합니다.
+
+| 기술 | 버전 | 용도 |
+|------|------|------|
+| Vitest | 4.0 | 테스트 러너 |
+| @testing-library/react | 16.3 | React 컴포넌트 테스트 |
+| jsdom | 27.4 | 브라우저 환경 시뮬레이션 |
+
+### 테스트 구조
+
+```
+tests/
+├── setup.ts                      # 테스트 환경 설정
+│                                 # - AudioContext mock
+│                                 # - navigator.wakeLock mock
+│                                 # - navigator.mediaDevices mock
+├── utils/
+│   ├── audio.test.ts            # encode, decode, decodeAudioData, createBlob (13개)
+│   ├── apiHelpers.test.ts       # retryWithBackoff, getUserFriendlyErrorMessage (17개)
+│   └── wakeLock.test.ts         # requestWakeLock, releaseWakeLock (9개)
+└── services/
+    ├── geminiService.test.ts    # checkApiStatus, JSON parsing (6개)
+    └── ttsCache.test.ts         # TTSCache 클래스 (9개)
+```
+
+### 테스트 실행
+
+```bash
+# Watch 모드로 테스트 실행
+npm run test
+
+# 단일 실행
+npm run test:run
+
+# 커버리지 리포트 생성
+npm run test:coverage
+```
+
+### 테스트 작성 가이드
+
+1. **파일 위치**: `tests/` 디렉토리에 소스 구조와 동일하게 배치
+2. **네이밍**: `*.test.ts` 패턴 사용
+3. **Mocking**: 외부 의존성(API, AudioContext)은 `vi.mock()` 사용
+4. **Fake Timers**: 시간 관련 테스트는 `vi.useFakeTimers()` 활용
+
+**예시**:
+```typescript
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+describe('myFunction', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  it('should do something', async () => {
+    // Arrange
+    const input = 'test';
+
+    // Act
+    const result = myFunction(input);
+
+    // Assert
+    expect(result).toBe('expected');
+  });
+});
+```
+
+### 현재 테스트 현황
+
+- **총 테스트**: 54개
+- **통과율**: 100%
+- **커버리지 대상**: `utils/`, `services/`
+
+---
+
 ## 유용한 명령어
 
 ```bash
@@ -750,6 +842,11 @@ const [userSpeaking, setUserSpeaking] = useState(false);
 npm run dev          # 포트 3000에서 개발 서버 시작
 npm run build        # 프로덕션 빌드
 npm run preview      # 프로덕션 빌드 미리보기
+
+# 테스트
+npm run test         # 테스트 실행 (watch 모드)
+npm run test:run     # 테스트 단일 실행
+npm run test:coverage # 커버리지 리포트
 
 # 디버깅
 # 브라우저 DevTools → Console에서 에러 확인
@@ -773,11 +870,12 @@ npm run preview      # 프로덕션 빌드 미리보기
 
 ## 버전 정보
 
-**최종 업데이트**: 2025-12-09
-**버전**: 2.2 (Safari 호환성 + Token 최적화)
+**최종 업데이트**: 2026-01-20
+**버전**: 2.3 (테스트 인프라 구축)
 **작성자**: AI 어시스턴트를 위한 종합 가이드
 
 ### 변경 이력
+- **v2.3** (2026-01-20): Vitest 테스트 인프라 구축, 54개 단위 테스트 추가, isAlexSpeaking closure 버그 수정
 - **v2.2** (2025-12-09): Safari TTS 수정, Token 사용량 60-70% 감소, 프롬프트 품질 개선
 - **v2.1** (2025-12-03): Interrupt, VAD, 응답 지연 최적화 추가
 - **v2.0** (2025-11-17): 문서화 개선
