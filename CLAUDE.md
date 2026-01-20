@@ -476,7 +476,7 @@ try {
 변경 사항 적용 전 반드시 실행:
 
 ```bash
-npm run test:run    # 54개 테스트 통과 확인
+npm run test:run    # 51개 테스트 통과 확인
 npm run build       # 빌드 에러 없음 확인
 ```
 
@@ -524,7 +524,7 @@ npm run build       # 빌드 에러 없음 확인
 - [ ] 전사 내보내기 기능
 
 ### 3. 기술
-- [x] ~~자동화된 테스트 추가 (Jest, React Testing Library)~~ → Vitest 도입 완료 (54개 테스트)
+- [x] ~~자동화된 테스트 추가 (Jest, React Testing Library)~~ → Vitest 도입 완료 (51개 테스트)
 - [ ] 컴포넌트 테스트 추가 (React Testing Library)
 - [ ] E2E 테스트 추가 (Playwright)
 - [ ] AudioWorklet으로 마이그레이션
@@ -781,7 +781,7 @@ tests/
 │   ├── apiHelpers.test.ts       # retryWithBackoff, getUserFriendlyErrorMessage (17개)
 │   └── wakeLock.test.ts         # requestWakeLock, releaseWakeLock (9개)
 └── services/
-    ├── geminiService.test.ts    # checkApiStatus, JSON parsing (6개)
+    ├── geminiService.test.ts    # checkApiStatus, JSON parsing (3개)
     └── ttsCache.test.ts         # TTSCache 클래스 (9개)
 ```
 
@@ -829,7 +829,7 @@ describe('myFunction', () => {
 
 ### 현재 테스트 현황
 
-- **총 테스트**: 54개
+- **총 테스트**: 51개
 - **통과율**: 100%
 - **커버리지 대상**: `utils/`, `services/`
 
@@ -875,7 +875,7 @@ npm run test:coverage # 커버리지 리포트
 **작성자**: AI 어시스턴트를 위한 종합 가이드
 
 ### 변경 이력
-- **v2.3** (2026-01-20): Vitest 테스트 인프라 구축, 54개 단위 테스트 추가, isAlexSpeaking closure 버그 수정
+- **v2.3** (2026-01-20): Vitest 테스트 인프라 구축, 51개 단위 테스트 추가, isAlexSpeaking closure 버그 수정
 - **v2.2** (2025-12-09): Safari TTS 수정, Token 사용량 60-70% 감소, 프롬프트 품질 개선
 - **v2.1** (2025-12-03): Interrupt, VAD, 응답 지연 최적화 추가
 - **v2.0** (2025-11-17): 문서화 개선

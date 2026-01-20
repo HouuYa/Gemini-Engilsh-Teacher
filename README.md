@@ -139,18 +139,18 @@ tests/
 │   ├── apiHelpers.test.ts       # API 재시도/에러 처리 테스트 (17개)
 │   └── wakeLock.test.ts         # Wake Lock API 테스트 (9개)
 └── services/
-    ├── geminiService.test.ts    # Gemini API 서비스 테스트 (6개)
+    ├── geminiService.test.ts    # Gemini API 서비스 테스트 (3개)
     └── ttsCache.test.ts         # TTS 캐시 테스트 (9개)
 ```
 
-**총 54개 테스트** 통과
+**총 51개 테스트** 통과
 
 ---
 
 ## 📅 변경 내역 (Changelog)
 
 ### v2.3 (2026-01-20) - *테스트 인프라 구축*
-- **🧪 단위 테스트 추가:** Vitest 기반 테스트 인프라 구축 (54개 테스트 통과)
+- **🧪 단위 테스트 추가:** Vitest 기반 테스트 인프라 구축 (51개 테스트 통과)
 - **🔧 버그 수정:** `isAlexSpeaking` closure 이슈 해결 (Interrupt 기능 안정화)
 - **📝 코드 품질:** 테스트 커버리지 리포트 및 CI 준비
 
