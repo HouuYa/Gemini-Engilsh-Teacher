@@ -102,6 +102,12 @@ export default function App() {
   const audioSourcesRef = useRef(new Set<AudioBufferSourceNode>());
   const inactivityTimerRef = useRef<NodeJS.Timeout | null>(null);
   const ttsPreloadAudioContextRef = useRef<AudioContext | null>(null);
+  const isAlexSpeakingRef = useRef(false); // Ref to track isAlexSpeaking for callbacks
+
+  // Sync isAlexSpeaking state with ref for use in callbacks
+  useEffect(() => {
+    isAlexSpeakingRef.current = isAlexSpeaking;
+  }, [isAlexSpeaking]);
 
   // AudioContext unlock 기능 (iOS 대응)
   const unlockAudioContext = useCallback(async () => {
@@ -489,7 +495,8 @@ export default function App() {
                         const isSpeaking = volumeDb > VOICE_THRESHOLD;
 
                         // 🚀 개선 #1: Interrupt - 사용자 말하기 시작하면 AI 오디오 중단
-                        if (isSpeaking && !wasSpeaking && isAlexSpeaking) {
+                        // Use ref instead of state to avoid stale closure
+                        if (isSpeaking && !wasSpeaking && isAlexSpeakingRef.current) {
                             console.log('User interrupt detected - stopping AI audio');
                             stopAudioPlayback();
                         }
